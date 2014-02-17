@@ -416,6 +416,14 @@ up_history_set_directory (UpHistory *history, const gchar *dir)
 	history->priv->dir = g_strdup (dir);
 }
 
+/*
+ * History saving loads some embedded systems and make 'em
+ * unresponsive. This especially bad when it happens in low battery
+ * conditions, so ENABLE_HISTORY is a workaround to disable history
+ * persistence on such systems.
+ */
+#ifdef ENABLE_HISTORY
+
 /**
  * up_history_array_to_file:
  * @list: a valid #GPtrArray instance
@@ -502,7 +510,7 @@ up_history_array_from_file (GPtrArray *list, const gchar *filename)
 	UpHistoryItem *item;
 
 	/* do we exist */
-	ret = g_file_test (filename, G_FILE_TEST_EXISTS);
+	ret = g_file_test (filename, G_FILE_TEST_EXISTS); */
 	if (!ret) {
 		g_debug ("failed to get data from %s as file does not exist", filename);
 		goto out;
@@ -538,6 +546,21 @@ out:
 	g_free (data);
 	return ret;
 }
+#else /* SAVE_HISTORY */
+
+static gboolean
+up_history_array_to_file (UpHistory *history, GPtrArray *list, const gchar *filename)
+{
+	return TRUE;
+}
+
+static gboolean
+up_history_array_from_file (GPtrArray *list, const gchar *filename)
+{
+	return FALSE;
+}
+
+#endif
 
 /**
  * up_history_save_data:
